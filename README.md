@@ -1,2 +1,2 @@
 # Online-delivery-system
-OOAD Course project
+Project for connecting cc and students remotely
