@@ -3,19 +3,22 @@ class A {
 public:
     int a;
     int b;
+    string str;
     A(int _a = 0, int _b = 0) {a = _a; b = _b;}
     friend ostream & operator << (ostream &out, const A &c); 
     friend istream & operator >> (istream &in,  A &c); 
 };
-ostream & operator << (ostream &out, const A &c) {out<<c.a<<" "<<c.b; return out;}
-istream & operator >> (istream &in,  A &c) {in>>c.a>>c.b; return in;}
+ostream & operator << (ostream &out, const A &c) {out<<c.a<<" "<<c.b<<c.str; return out;}
+istream & operator >> (istream &in,  A &c) {in>>c.a>>c.b; getline(in,c.str); return in;}
 template <typename T>
-int writeToFile(vector<T> a, string file) {
+int writeToFile(const vector<T> &a, string file) {
     ofstream fout;
     fout.open(file);
     if(fout) {
-        for(auto it = a.begin(); it != a.end(); ++it) 
+        for(auto it = a.begin(); it != a.end(); ++it) {
             fout<<*it<<endl;
+            // cout<<*it<<endl;
+        }
         fout.close();
         return 1;
     }
@@ -29,6 +32,7 @@ int readFromFile(vector<T> &a, string file) {
             T _a; fin>>_a;
             if(fin.eof())
                 break;
+            cout<<_a<<endl;
             a.push_back(_a);
         }
         fin.close();
@@ -37,16 +41,16 @@ int readFromFile(vector<T> &a, string file) {
     return 0;
 }
 int main() { 
-    vector<A> a;
+    vector<Item> a;
     for(int i = 0; i < 3; i++) {
-        A c;
-        cin>>c;
+        Item c("abcd","def","ghijk",12,24);
         a.push_back(c);
     }
     writeToFile(a,"sample");
-    vector<A> b;
+    vector<Item> b;
     readFromFile(b,"sample");
-    for(auto it = b.begin(); it != b.end(); ++it)
-        cout<<*it<<endl;
+    // cout<<"*"<<b.size()<<"*"<<endl;
+    // for(auto it = b.begin(); it != b.end(); ++it)
+    //     cout<<*it<<endl;
     return 0; 
 } 

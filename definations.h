@@ -10,9 +10,12 @@ class User;
 class Item;
 class Inventory;
 class Order;
+class Customer;
 class DeliverySlot;
 class Transaction;
-vector<User> user_list;
+vector<Customer> customer_list;
+vector<Admin> admin_list;
+vector<Vendor> vendor_list;
 vector<Order> order_list;
 vector<DeliverySlot> slot_list;
 
@@ -39,6 +42,7 @@ class Item{
         int price, vendor_id, discount, item_id;
     public:
         static int total_items;
+        Item() {}
         Item(string _name, string _category, string _description, int _price, int _vendor_id){
             name = _name;
             category = _category;
@@ -63,7 +67,24 @@ class Item{
         int get_item_id() {return item_id;}
         ////////////////////////
         bool is_available() {return inventory.quantity[item_id] != 0;}
+        ////////////////////////
+        friend ostream & operator << (ostream &out, const Item &item);
+        friend istream & operator >> (istream &in, Item &item);
 };
+ostream & operator << (ostream &out, const Item &item) {
+            out<<item.item_id<<" "<<item.price<<" "<<item.vendor_id<<" "<<item.discount<<endl;
+            out<<item.name<<endl<<item.category<<endl<<item.description;
+            return out;
+        }
+istream & operator >> (istream &in, Item &item) {
+            in>>item.item_id>>item.price>>item.vendor_id>>item.discount;
+            in.get();
+            string _temp;
+            getline(in,_temp); item.set_name(_temp);
+            getline(in,_temp); item.set_category(_temp);
+            getline(in,_temp); item.set_description(_temp);
+            return in;
+        }
 int Item::total_items = 0;
 
 
@@ -117,8 +138,7 @@ class User{
             name = _name;
             pass = _pass;
             email_id = _email;
-            user_id = ++total_users;
-            user_list.push_back(*this);
+            ++User::total_users;
         }
         string get_name() {return name;}
         void set_name(string _name) {name = _name;}
@@ -147,12 +167,15 @@ class Customer : public User{
         vector<int> orders; // orders-reference-list
         Cart cart;
     public:
+        static int total_customers;
         Customer(string _name, string _pass, string _email, string _address, int _phone, int _type):User(_name, _pass, _email)
         {
             address = _address;
             phone = _phone;
             type = _phone;
             is_registered = false; //email-verification
+            user_id = ++Customer::total_customers;
+            customer_list.push_back(*this);
         }
         string get_address() {return address;}
         void set_address(string _address) {address = _address;}
@@ -160,7 +183,7 @@ class Customer : public User{
         void set_phone(int _phone) {phone = _phone;}
         void set_registered() {is_registered = true;}
 };
-
+int Customer::total_customers = 0;
 
 void Inventory::add(Item _item){
     item_list.push_back(_item);
@@ -211,10 +234,13 @@ class Vendor : public User{
         vector<int> items; //item-reference-list
         vector<int> orders; //order-reference-list
     public:
+        static int total_vendors;
         Vendor(string _name, string _pass, string _email, int _account, int _phone, string _address):User(_name, _pass, _email){
             bank_account = _account;
             phone = _phone;
             address = _address;
+            user_id = ++Vendor::total_vendors;
+            vendor_list.push_back(*this);
         }
         int get_bank_account() {return bank_account;}
         void set_bank_account(int _bank_account) {bank_account = _bank_account;}
@@ -229,7 +255,7 @@ class Vendor : public User{
         //view_order_list(){}
         //view_item_list(){}
 };
-
+int Vendor::total_vendors = 0;
 
 class DeliverySlot{
     
@@ -254,6 +280,11 @@ int DeliverySlot::total_slots = 0;
 class Admin : public User{
     
     public:
+        static int total_admins;
+        Admin(string _name,string _pass,string _email):User(_name,_pass,_email) {
+            user_id = ++Admin::total_admins;
+            admin_list.push_back(*this);
+        }
         void create_vendor(string _name, string _pass, string _email, int _account, int _phone, string _address){
             Vendor new_vendor(_name, _pass, _email, _account, _phone, _address);
         }
@@ -261,7 +292,7 @@ class Admin : public User{
             DeliverySlot new_slot(_name, _time_slot);
         }
 };
-
+int Admin::total_admins = 0;
 
 class Transaction{
     

@@ -1,4 +1,4 @@
-#include "definations.h"
+#include <bits/stdc++.h>
 template <typename T>
 int writeToFile(vector<T> a, string file) {
     ofstream fout;
