@@ -41,13 +41,13 @@ int readFromFile(vector<T> &a, string file) {
     return 0;
 }
 int main() { 
-    vector<Item> a;
+    vector<Order> a;
     for(int i = 0; i < 3; i++) {
-        Item c("abcd","def","ghijk",12,24);
+        Order c(1,2,3,4,5,6);
         a.push_back(c);
     }
     writeToFile(a,"sample");
-    vector<Item> b;
+    vector<Order> b;
     readFromFile(b,"sample");
     // cout<<"*"<<b.size()<<"*"<<endl;
     // for(auto it = b.begin(); it != b.end(); ++it)

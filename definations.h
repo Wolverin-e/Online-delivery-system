@@ -12,6 +12,8 @@ class Inventory;
 class Order;
 class Customer;
 class DeliverySlot;
+class Admin;
+class Vendor;
 class Transaction;
 vector<Customer> customer_list;
 vector<Admin> admin_list;
@@ -68,15 +70,12 @@ class Item{
         ////////////////////////
         bool is_available() {return inventory.quantity[item_id] != 0;}
         ////////////////////////
-        friend ostream & operator << (ostream &out, const Item &item);
-        friend istream & operator >> (istream &in, Item &item);
-};
-ostream & operator << (ostream &out, const Item &item) {
+        friend ostream & operator << (ostream &out, const Item &item) {
             out<<item.item_id<<" "<<item.price<<" "<<item.vendor_id<<" "<<item.discount<<endl;
             out<<item.name<<endl<<item.category<<endl<<item.description;
             return out;
         }
-istream & operator >> (istream &in, Item &item) {
+        friend istream & operator >> (istream &in, Item &item) {
             in>>item.item_id>>item.price>>item.vendor_id>>item.discount;
             in.get();
             string _temp;
@@ -85,6 +84,7 @@ istream & operator >> (istream &in, Item &item) {
             getline(in,_temp); item.set_description(_temp);
             return in;
         }
+};
 int Item::total_items = 0;
 
 
@@ -105,7 +105,7 @@ class Cart{
         void add_to_cart(int _item_id, int _quantity){
             items.push_back(_item_id);
             quantity.push_back(_quantity);
-            total_price += inventory.item_list[_item_id].get_price()*_quantity;
+            // total_price += inventory.item_list[_item_id].get_price()*_quantity;
         }
         void clear_cart(){
             items.clear();
@@ -124,6 +124,21 @@ class Cart{
         }
         // void checkout(){}
         // void print_cart(){}
+        ////////////////////////
+        friend ostream & operator << (ostream &out, const Cart &cart) {
+            for(auto it = cart.items.begin(); it != cart.items.end(); ++it)
+                out<<*it<<" ";
+            for(auto it = cart.quantity.begin(); it != cart.quantity.end(); ++it)
+                out<<*it<<" ";
+            out<<cart.total_price<<endl;
+        }
+        friend istream & operator >> (istream &in, Cart &cart) {
+            for(auto it = cart.items.begin(); it != cart.items.end(); ++it)
+                in>>*it;
+            for(auto it = cart.quantity.begin(); it != cart.quantity.end(); ++it)
+                in>>*it;
+            in>>cart.total_price;
+        }
 };
 
 
@@ -134,6 +149,7 @@ class User{
         int user_id;
     public:
         static int total_users;
+        User() {}
         User(string _name, string _pass, string _email){
             name = _name;
             pass = _pass;
@@ -154,6 +170,21 @@ class User{
         bool operator==(User another){
             return this->user_id == another.get_user_id();
         }
+        ////////////////////////
+        friend ostream & operator<< (ostream &out, const User &user) {
+            out<<user.user_id<<"\n";
+            out<<user.name<<"\n"<<user.pass<<"\n"<<user.email_id;
+            return out;
+        }
+        friend istream & operator>> (istream &in, User &user) {
+            in>>user.user_id;
+            in.get();
+            string _temp;
+            getline(in,_temp); user.set_name(_temp);
+            getline(in,_temp); user.set_password(_temp);
+            getline(in,_temp); user.set_email_id(_temp);
+            return in;
+        }
 };
 int User::total_users = 0;
 
@@ -168,6 +199,7 @@ class Customer : public User{
         Cart cart;
     public:
         static int total_customers;
+        Customer() {}
         Customer(string _name, string _pass, string _email, string _address, int _phone, int _type):User(_name, _pass, _email)
         {
             address = _address;
@@ -182,6 +214,25 @@ class Customer : public User{
         int get_phone() {return phone;}
         void set_phone(int _phone) {phone = _phone;}
         void set_registered() {is_registered = true;}
+        ////////////////////////
+        friend ostream & operator << (ostream &out, const Customer &customer) {
+            out<<static_cast<const User &>(customer)<<endl;
+            out<<customer.phone<<" "<<customer.type<<" ";
+            for(auto it = customer.orders.begin(); it != customer.orders.end(); ++it)
+                out<<*it<<" ";
+            out<<customer.address<<"\n";
+            out<<customer.cart;
+            return out;
+        }
+        friend istream & operator >> (istream &in, Customer & customer) {
+            in>>static_cast<User &>(customer);
+            in>>customer.phone>>customer.type;
+            for(auto it = customer.orders.begin(); it != customer.orders.end(); ++it)
+                in>>*it;
+            string _temp; getline(in,_temp); customer.set_address(_temp);
+            in>>customer.cart;
+            return in;
+        }
 };
 int Customer::total_customers = 0;
 
@@ -198,6 +249,7 @@ class Order{
         //payment_reference
     public:
         static int total_orders;
+        Order() {}
         Order(int _customer_id, int _vendor_id, int _item_id, int _quantity, int _net_price, int _slot_id){
             customer_id = _customer_id;
             vendor_id = _vendor_id;
@@ -222,6 +274,19 @@ class Order{
         void confirm_cancellation(){status = "cancelled";}
         //void refund()
         //print_order()
+        ////////////////////////
+        friend ostream & operator << (ostream &out, const Order &order) {
+            out<<order.order_id<<" "<<order.customer_id<<" "<<order.item_id<<" "<<order.vendor_id<<" "<<order.quantity<<" ";
+            out<<order.netprice<<" "<<order.slot_id<<" "<<order.status;
+            return out;
+        }
+        friend istream & operator >> (istream &in, Order &order) {
+            in>>order.order_id>>order.customer_id>>order.item_id>>order.vendor_id>>order.quantity;
+            in>>order.netprice>>order.slot_id;
+            getline(in,order.status);
+            return in;
+        }
+
 };
 int Order::total_orders = 0;
 
@@ -235,6 +300,7 @@ class Vendor : public User{
         vector<int> orders; //order-reference-list
     public:
         static int total_vendors;
+        Vendor() {}
         Vendor(string _name, string _pass, string _email, int _account, int _phone, string _address):User(_name, _pass, _email){
             bank_account = _account;
             phone = _phone;
@@ -254,6 +320,28 @@ class Vendor : public User{
         //update_existing_item(){}
         //view_order_list(){}
         //view_item_list(){}
+        ////////////////////////
+        friend ostream & operator << (ostream &out, const Vendor &vendor) {
+            out<<static_cast<const User &>(vendor)<<endl;
+            out<<vendor.bank_account<<" "<<vendor.phone<<" ";
+            for(auto it = vendor.items.begin(); it != vendor.items.end(); ++it)
+                out<<*it<<" ";
+            for(auto it = vendor.orders.begin(); it != vendor.orders.end(); ++it)
+                out<<*it<<" ";   
+            out<<vendor.address;
+            return out;
+        }
+        friend istream & operator >> (istream &in, Vendor &vendor) {
+            in>>static_cast<User &>(vendor);
+            in>>vendor.bank_account>>vendor.phone;
+            for(auto it = vendor.items.begin(); it != vendor.items.end(); ++it)
+                in>>*it;
+            for(auto it = vendor.orders.begin(); it != vendor.orders.end(); ++it)
+                in>>*it;
+            string _temp;
+            getline(in,_temp); vendor.set_address(_temp);
+            return in;
+        }
 };
 int Vendor::total_vendors = 0;
 
@@ -264,6 +352,7 @@ class DeliverySlot{
         string time_slot, name;
     public:
         static int total_slots;
+        DeliverySlot() {}
         DeliverySlot(string _name, string _time_slot){
             name = _name;
             time_slot = _time_slot;
@@ -271,8 +360,23 @@ class DeliverySlot{
             slot_list.push_back(*this);
         }
         string get_name() {return name;}
+        string set_name(string _name) {name = _name;}
         string get_time_slot() {return time_slot;}
         void set_time_slot(string _time_slot) {time_slot = _time_slot;}
+        ////////////////////////
+        friend ostream & operator << (ostream &out, const DeliverySlot &slot) {
+            out<<slot.slot_id<<"\n";
+            out<<slot.time_slot<<"\n"<<slot.name;
+            return out;
+        }
+        friend istream & operator >> (istream &in, DeliverySlot &slot) {
+            in>>slot.slot_id;
+            in.get();
+            string _temp;
+            getline(in,_temp); slot.set_time_slot(_temp);
+            getline(in,_temp); slot.set_time_slot(_temp);
+            return in;
+        }
 };
 int DeliverySlot::total_slots = 0;
 
@@ -281,6 +385,7 @@ class Admin : public User{
     
     public:
         static int total_admins;
+        Admin() {}
         Admin(string _name,string _pass,string _email):User(_name,_pass,_email) {
             user_id = ++Admin::total_admins;
             admin_list.push_back(*this);
@@ -291,6 +396,9 @@ class Admin : public User{
         void create_slot(string _name, string _time_slot){
             DeliverySlot new_slot(_name, _time_slot);
         }
+        ////////////////////////
+        friend ostream & operator << (ostream &out, const Admin &admin) {out<<static_cast<const User &>(admin); return out;}
+        friend istream & operator >> (istream &in, Admin &admin) {in>>static_cast<User &>(admin); return in;}
 };
 int Admin::total_admins = 0;
 
@@ -325,3 +433,4 @@ class OnlineTransaction: public Transaction{
     public:
         void call_online_transaction(){}
 };
+
