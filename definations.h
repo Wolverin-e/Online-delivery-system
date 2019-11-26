@@ -16,6 +16,8 @@ class DeliverySlot;
 class Admin;
 class Vendor;
 class Transaction;
+class COD;
+class OnlineTransaction;
 vector<Customer> customer_list;
 vector<Admin> admin_list;
 vector<Vendor> vendor_list;
@@ -68,7 +70,7 @@ class Item{
             price = _price;
             vendor_id = _vendor_id;
             discount = 0;
-            item_id = ++total_items;
+            item_id = total_items++;
             inventory.add(*this);
         }
         string get_name() {return name;}
@@ -152,7 +154,7 @@ class Cart{
         }
         void change_quantity(int _item_id, int _quantity){
             vector<int>::iterator it = find(items.begin(), items.end(), _item_id);
-            *it = _quantity;
+            quantity[it-items.begin()] = _quantity;
         }
         // void checkout(){}
         // void print_cart(){}
@@ -230,6 +232,7 @@ class Customer : public User{
         vector<int> orders; // orders-reference-list
         Cart cart;
     public:
+        friend Order;
         static int total_customers;
         Customer() {}
         Customer(string _name, string _pass, string _email, string _address, int _phone, int _type):User(_name, _pass, _email)
@@ -238,9 +241,10 @@ class Customer : public User{
             phone = _phone;
             type = _phone;
             is_registered = false; //email-verification
-            user_id = ++Customer::total_customers;
+            user_id = Customer::total_customers++;
             customer_list.push_back(*this);
         }
+        vector<int> get_orders(){return orders;}
         string get_address() {return address;}
         void set_address(string _address) {address = _address;}
         int get_phone() {return phone;}
@@ -290,54 +294,6 @@ void Inventory::update_in_inventory(int item_id,int new_price)
         }
     }
 }
-class Order{
-    
-    private:
-        int order_id, customer_id, vendor_id, item_id, quantity, netprice, slot_id;
-        string status;
-        //payment_reference
-    public:
-        static int total_orders;
-        Order() {}
-        Order(int _customer_id, int _vendor_id, int _item_id, int _quantity, int _net_price, int _slot_id){
-            customer_id = _customer_id;
-            vendor_id = _vendor_id;
-            item_id = _item_id;
-            quantity = _quantity;
-            netprice = _net_price;
-            slot_id = _slot_id;
-            status = "Docking";
-            order_id = ++total_orders;
-            order_list.push_back(*this);
-        }
-        int get_order_id() {return order_id;}
-        int get_customer_id() {return customer_id;}
-        int get_vendor_id() {return vendor_id;}
-        int get_item_id() {return item_id;}
-        int get_quantity() {return quantity;}
-        int get_netprice() {return netprice;}
-        int get_slot_id() {return slot_id;}
-        string get_status() {return status;}
-        ////////////////////////
-        void cancel(){status = "cancelation requested";}
-        void confirm_cancellation(){status = "cancelled";}
-        //void refund()
-        //print_order()
-        ////////////////////////
-        friend ostream & operator << (ostream &out, const Order &order) {
-            out<<order.order_id<<" "<<order.customer_id<<" "<<order.item_id<<" "<<order.vendor_id<<" "<<order.quantity<<" ";
-            out<<order.netprice<<" "<<order.slot_id<<" "<<order.status;
-            return out;
-        }
-        friend istream & operator >> (istream &in, Order &order) {
-            in>>order.order_id>>order.customer_id>>order.item_id>>order.vendor_id>>order.quantity;
-            in>>order.netprice>>order.slot_id;
-            getline(in,order.status);
-            return in;
-        }
-
-};
-int Order::total_orders = 0;
 
 
 class Vendor : public User{
@@ -349,15 +305,18 @@ class Vendor : public User{
         vector<Item> view;
         vector<int> orders; //order-reference-list
     public:
+        friend Order;
         static int total_vendors;
         Vendor() {}
         Vendor(string _name, string _pass, string _email, int _account, int _phone, string _address):User(_name, _pass, _email){
             bank_account = _account;
             phone = _phone;
             address = _address;
-            user_id = ++Vendor::total_vendors;
+            user_id = Vendor::total_vendors++;
             vendor_list.push_back(*this);
         }
+
+        vector<int> get_orders(){return orders;}
         int get_bank_account() {return bank_account;}
         void set_bank_account(int _bank_account) {bank_account = _bank_account;}
         string get_address() {return address;}
@@ -408,6 +367,105 @@ class Vendor : public User{
         }
 };
 int Vendor::total_vendors = 0;
+
+
+class Transaction{
+    
+    protected:
+        int transaction_id;
+        Cart ordered_cart;
+        bool is_confirmed;
+    public:
+        Transaction(){}
+        Transaction(Cart _ordered_cart){
+            ordered_cart = _ordered_cart;
+        }
+        void confirm_payment(){ is_confirmed = true; }
+        // void view_receipt(){}
+};
+
+
+class COD: public Transaction{
+
+    public:
+        COD(){}
+        COD(Cart _ordered_cart):Transaction(_ordered_cart){}
+        void collect_cash(){
+            confirm_payment();
+        }
+};
+
+
+class OnlineTransaction: public Transaction{
+    
+    private:
+        int transaction_provider_id;
+        map<int, int> payments;
+    public:
+        OnlineTransaction(){}
+        OnlineTransaction(Cart _ordered_cart, int _transaction_provider_id, map<int, int> _payments):Transaction(_ordered_cart){
+            transaction_provider_id = _transaction_provider_id;
+            payments = _payments;
+        }
+        void call_online_transaction(){
+            confirm_payment();
+        }
+};
+
+class Order{
+    
+    private:
+        int order_id, customer_id, vendor_id, item_id, quantity, netprice, slot_id;
+        string status;
+        COD cod;
+        OnlineTransaction online;
+    public:
+        static int total_orders;
+        Order(){}
+        Order(int _customer_id, int _item_id, int _quantity, int _slot_id, COD _cod, OnlineTransaction _online){
+            customer_id = _customer_id;
+            vendor_id = inventory.item_list[_item_id].get_vendor_id();
+            item_id = _item_id;
+            quantity = _quantity;
+            netprice = inventory.item_list[_item_id].get_price()*quantity;
+            slot_id = _slot_id;
+            status = "Docking";
+            cod = _cod;
+            online = _online;
+            order_id = total_orders++;
+            order_list.push_back(*this);
+            customer_list[customer_id].orders.push_back(order_id);
+            vendor_list[vendor_id].orders.push_back(order_id);
+        }
+        int get_order_id() {return order_id;}
+        int get_customer_id() {return customer_id;}
+        int get_vendor_id() {return vendor_id;}
+        int get_item_id() {return item_id;}
+        int get_quantity() {return quantity;}
+        int get_netprice() {return netprice;}
+        int get_slot_id() {return slot_id;}
+        string get_status() {return status;}
+        ////////////////////////
+        void cancel(){status = "cancelation requested";}
+        void confirm_cancellation(){status = "cancelled";}
+        //void refund()
+        //print_order()
+        ////////////////////////
+        friend ostream & operator << (ostream &out, const Order &order) {
+            out<<order.order_id<<" "<<order.customer_id<<" "<<order.item_id<<" "<<order.vendor_id<<" "<<order.quantity<<" ";
+            out<<order.netprice<<" "<<order.slot_id<<" "<<order.status;
+            return out;
+        }
+        friend istream & operator >> (istream &in, Order &order) {
+            in>>order.order_id>>order.customer_id>>order.item_id>>order.vendor_id>>order.quantity;
+            in>>order.netprice>>order.slot_id;
+            getline(in,order.status);
+            return in;
+        }
+
+};
+int Order::total_orders = 0;
+
 
 class DeliverySlot{
     
@@ -465,35 +523,3 @@ class Admin : public User{
         friend istream & operator >> (istream &in, Admin &admin) {in>>static_cast<User &>(admin); return in;}
 };
 int Admin::total_admins = 0;
-
-class Transaction{
-    
-    protected:
-        int transaction_id;
-        Cart ordered_cart;
-        bool is_confirmed;
-    public:
-        Transaction(int _order_id, Cart _ordered_cart){
-            ordered_cart = _ordered_cart;
-        }
-        void confirm_payment(){ is_confirmed = true; }
-        // void view_receipt(){}
-};
-
-
-class COD: public Transaction{
-    
-    public:
-        void collect_cash(){
-            confirm_payment();
-        }
-};
-
-
-class OnlineTransaction: public Transaction{
-    
-    private:
-        int transaction_provider_id, bank_id;
-    public:
-        void call_online_transaction(){}
-};
