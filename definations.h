@@ -33,23 +33,9 @@ class Inventory{
         ////////////////////////
         void add(Item _item);
         void view_items_inv();
-        void update_in_inventory(int item_id,int price);
-        // {
-        //     for(int i=0;i<item_list.size();i++)
-        //     {
-        //         cout<<item_list[i];
-        //     }
-        // }
-        // void update_in_inventory(int item_id);
-        // // {
-        //     for(int i=0;i<item_list.size();i++)
-        //     {
-
-        //     }
-        // }
         //search_item(name)
         //display_inventory()
-        //is_present(item)
+        bool is_present(int _item_id){return quantity[_item_id];}
         //filter(category)
 };
 
@@ -283,17 +269,6 @@ void Inventory::view_items_inv()
     for(auto it = item_list.begin(); it != item_list.end(); ++it)
         cout<<*it<<endl;
 }
-void Inventory::update_in_inventory(int item_id,int new_price)
-{
-    for(int i=0;i<item_list.size();i++)
-    {
-        if(item_list[i].get_item_id()==item_id)
-        {
-            item_list[i].set_price(new_price);
-            break;
-        }
-    }
-}
 
 
 class Vendor : public User{
@@ -332,16 +307,7 @@ class Vendor : public User{
         }
         void update_item(int item_id,int new_price)
         {
-            for(int i=0;i<items.size();i++)
-            {
-                if(items[i]==item_id)
-                {
-                    view[i].set_price(new_price);
-                    inventory.update_in_inventory(item_id,new_price);
-                    return;
-                }
-            }
-            cout<<"can't update"<<endl;
+            // Updating
         }
         ////////////////////////
         friend ostream & operator << (ostream &out, const Vendor &vendor) {
