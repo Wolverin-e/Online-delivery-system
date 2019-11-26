@@ -153,7 +153,7 @@ void view_order_list()
     }
     // cout<<orders[0]<<endl;
 }
-void user_page()
+void init()
 {
     cout << "1.Search Item by Name\n"
        << "2.Search Item by id\n"
@@ -165,13 +165,13 @@ void user_page()
     int _option = 0;
     cin>>_option;
     switch(_option) {
-        case 1: Search_by_name(); user_page();break;
-        case 2: Search_by_id(); user_page(); break;
-        case 3: view_order_list();user_page(); break;
-        case 4: view_shopping_cart();user_page();break;
-        case 5: checkout();user_page();break;
+        case 1: Search_by_name(); init();break;
+        case 2: Search_by_id(); init(); break;
+        case 3: view_order_list();init(); break;
+        case 4: view_shopping_cart();init();break;
+        case 5: checkout();init();break;
         case 7: break;
-        default: cout<<"Incorrect Choice\nEnter Again \n"; getchar(); user_page(); break;
+        default: cout<<"Incorrect Choice\nEnter Again \n"; getchar(); init(); break;
     }
 }
 int main()
@@ -184,5 +184,5 @@ int main()
     new_vend.add_new_item("shampoo","cosmetics","good",20);
     current_user->get_cart().add_to_cart(0,3);
     // inventory.view_items_inv();
-    user_page();
+    init();
 }
