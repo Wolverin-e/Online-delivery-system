@@ -1,4 +1,3 @@
-#include <bits/stdc++.h>
 #include "definations.h"
 template <typename T>
 int writeToFile(vector<T> a, string file) {

@@ -1,5 +1,7 @@
 #include <bits/stdc++.h>
-#include "definations.h"
+#include<string>
+#include<vector>
+#include<iostream>
 template <typename T>
 int writeToFile(vector<T> a, string file) {
     ofstream fout;

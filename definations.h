@@ -1,7 +1,8 @@
-#include<iostream>
 #include <bits/stdc++.h>
 #include<string>
 #include<vector>
+#include<iostream>
+#include "getpass.h"
 
 using namespace std;
 
@@ -29,6 +30,21 @@ class Inventory{
         vector<Item> item_list;
         ////////////////////////
         void add(Item _item);
+        void view_items_inv();
+        void update_in_inventory(int item_id,int price);
+        // {
+        //     for(int i=0;i<item_list.size();i++)
+        //     {
+        //         cout<<item_list[i];
+        //     }
+        // }
+        // void update_in_inventory(int item_id);
+        // // {
+        //     for(int i=0;i<item_list.size();i++)
+        //     {
+
+        //     }
+        // }
         //search_item(name)
         //display_inventory()
         //is_present(item)
@@ -68,11 +84,13 @@ class Item{
         void set_discount(int _discount) {discount = _discount;}
         int get_item_id() {return item_id;}
         ////////////////////////
+        void display_item() {}
+        ////////////////////////
         bool is_available() {return inventory.quantity[item_id] != 0;}
         ////////////////////////
         friend ostream & operator << (ostream &out, const Item &item) {
             out<<item.item_id<<" "<<item.price<<" "<<item.vendor_id<<" "<<item.discount<<endl;
-            out<<item.name<<endl<<item.category<<endl<<item.description;
+            out<<item.name<<endl<<item.category<<endl<<item.description<<endl;
             return out;
         }
         friend istream & operator >> (istream &in, Item &item) {
@@ -93,6 +111,7 @@ class Cart{
     private:
         vector<int> items;
         vector<int> quantity;
+        vector<Item> view;
         int total_price;
     public:
         Cart(){
@@ -103,9 +122,20 @@ class Cart{
         vector<int> get_quantity() {return quantity;}
         ////////////////////////
         void add_to_cart(int _item_id, int _quantity){
-            items.push_back(_item_id);
-            quantity.push_back(_quantity);
-            // total_price += inventory.item_list[_item_id].get_price()*_quantity;
+            // vector<int>::iterator it = find(inventory.item_list.begin(), inventory.item_list.end(), _item_id);
+            for(auto it = inventory.item_list.begin(); it != inventory.item_list.end(); ++it)
+            {
+
+                if((*it).get_item_id()==_item_id)
+                {
+                    items.push_back(_item_id);
+                    quantity.push_back(_quantity);
+                    // total_price += inventory.item_list[_item_id].get_price()*_quantity;
+                    return;
+                }
+            }
+            cout<<"invalid item id\n";
+            
         }
         void clear_cart(){
             items.clear();
@@ -116,7 +146,9 @@ class Cart{
             vector<int>::iterator it = find(items.begin(), items.end(), _item_id);
             if(it != items.end()){
                 items.erase(it);
+                return;
             }
+            cout<<"Invalid item id";
         }
         void change_quantity(int _item_id, int _quantity){
             vector<int>::iterator it = find(items.begin(), items.end(), _item_id);
@@ -214,6 +246,7 @@ class Customer : public User{
         int get_phone() {return phone;}
         void set_phone(int _phone) {phone = _phone;}
         void set_registered() {is_registered = true;}
+        Cart& get_cart(){return cart;}
         ////////////////////////
         friend ostream & operator << (ostream &out, const Customer &customer) {
             out<<static_cast<const User &>(customer)<<endl;
@@ -240,7 +273,23 @@ void Inventory::add(Item _item){
     item_list.push_back(_item);
     quantity.push_back(0);
 }
-
+void Inventory::view_items_inv()
+{
+    // cout<<item_list.size();
+    for(auto it = item_list.begin(); it != item_list.end(); ++it)
+        cout<<*it<<endl;
+}
+void Inventory::update_in_inventory(int item_id,int new_price)
+{
+    for(int i=0;i<item_list.size();i++)
+    {
+        if(item_list[i].get_item_id()==item_id)
+        {
+            item_list[i].set_price(new_price);
+            break;
+        }
+    }
+}
 class Order{
     
     private:
@@ -297,6 +346,7 @@ class Vendor : public User{
         int bank_account, phone;
         string address;
         vector<int> items; //item-reference-list
+        vector<Item> view;
         vector<int> orders; //order-reference-list
     public:
         static int total_vendors;
@@ -316,10 +366,24 @@ class Vendor : public User{
         void add_new_item(string _name, string _category, string _description, int _price){
             Item new_item(_name, _category, _description, _price, user_id);
             items.push_back(new_item.get_item_id());
+            view.push_back(new_item);
         }
-        //update_existing_item(){}
-        //view_order_list(){}
-        //view_item_list(){}
+        void view_item_list(){
+            for(int i=0;i<view.size();i++)cout<<view[i];
+        }
+        void update_item(int item_id,int new_price)
+        {
+            for(int i=0;i<items.size();i++)
+            {
+                if(items[i]==item_id)
+                {
+                    view[i].set_price(new_price);
+                    inventory.update_in_inventory(item_id,new_price);
+                    return;
+                }
+            }
+            cout<<"can't update"<<endl;
+        }
         ////////////////////////
         friend ostream & operator << (ostream &out, const Vendor &vendor) {
             out<<static_cast<const User &>(vendor)<<endl;
@@ -433,4 +497,3 @@ class OnlineTransaction: public Transaction{
     public:
         void call_online_transaction(){}
 };
-
