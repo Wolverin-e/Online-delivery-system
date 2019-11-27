@@ -3,11 +3,12 @@
 #include<vector>
 #include<iostream>
 #include "getpass.h"
+#include "File.h"
 
 using namespace std;
 
 
-class User;
+class User; 
 class Item;
 class Inventory;
 class Order;
@@ -34,6 +35,21 @@ class Inventory{
         int search_item(string _name);
         void display_inventory();
         bool is_present(int _item_id){return quantity[_item_id];}
+        ////////////////////////
+        // friend ostream & operator << (ostream &out, const Inventory &inventory) {
+        //     for(auto it = inventory.item_list.begin(); it != inventory.item_list.end(); ++it)
+        //         out<<*it<<endl;
+        //     for(auto it = inventory.quantity.begin(); it != inventory.quantity.end(); ++it)
+        //         out<<*it<<" ";
+        //     return out;
+        // }
+        // friend istream & operator >> (istream &in, Inventory &inventory) {
+        //     for(auto it = inventory.item_list.begin(); it != inventory.item_list.end(); ++it)
+        //         in>>*it;
+        //     for(auto it = inventory.quantity.begin(); it != inventory.quantity.end(); ++it)
+        //         in>>*it;
+        //     return in;
+        // }
 };
 
 Inventory inventory;
@@ -45,7 +61,9 @@ class Item{
         int price, vendor_id, discount, item_id;
     public:
         static int total_items;
-        Item() {}
+        Item() {
+            Item::total_items++;
+        }
         Item(string _name, string _category, string _description, int _price, int _vendor_id, int _quantity){
             name = _name;
             category = _category;
@@ -56,7 +74,9 @@ class Item{
             item_id = total_items++;
             inventory.add(*this);
             inventory.quantity[item_id] = _quantity;
+            // inventory.quantity.push_back(_quantity);
         }
+        void decnt(){Item::total_items--;}
         string get_name() {return name;}
         void set_name(string _name) {name = _name;}
         string get_category() {return category;}
@@ -201,13 +221,16 @@ class User{
         int user_id;
     public:
         static int total_users;
-        User() {}
+        User() {
+            User::total_users++;
+        }
         User(string _name, string _pass, string _email){
             name = _name;
             pass = _pass;
             email_id = _email;
             ++User::total_users;
         }
+        void decnt(){User::total_users--;}
         string get_name() {return name;}
         void set_name(string _name) {name = _name;}
         string get_email_id() {return email_id;}
@@ -252,7 +275,9 @@ class Customer : public User{
     public:
         friend Order;
         static int total_customers;
-        Customer() {}
+        Customer() {
+            Customer::total_customers++;
+        }
         Customer(string _name, string _pass, string _email, string _address, int _phone, int _type):User(_name, _pass, _email)
         {
             address = _address;
@@ -262,6 +287,7 @@ class Customer : public User{
             user_id = Customer::total_customers++;
             customer_list.push_back(*this);
         }
+        void decnt(){Customer::total_customers--;}
         vector<int> get_orders(){return orders;}
         string get_address() {return address;}
         void set_address(string _address) {address = _address;}
@@ -327,7 +353,9 @@ class Vendor : public User{
     public:
         friend Order;
         static int total_vendors;
-        Vendor() {}
+        Vendor() {
+            Vendor::total_vendors++;
+        }
         Vendor(string _name, string _pass, string _email, int _account, int _phone, string _address):User(_name, _pass, _email){
             bank_account = _account;
             phone = _phone;
@@ -335,7 +363,7 @@ class Vendor : public User{
             user_id = Vendor::total_vendors++;
             vendor_list.push_back(*this);
         }
-
+        void decnt(){Vendor::total_vendors--;}
         vector<int> get_orders(){return orders;}
         int get_bank_account() {return bank_account;}
         void set_bank_account(int _bank_account) {bank_account = _bank_account;}
@@ -429,7 +457,9 @@ class Order{
         OnlineTransaction online;
     public:
         static int total_orders;
-        Order(){}
+        Order(){
+            Order::total_orders++;
+        }
         Order(int _customer_id, int _item_id, int _quantity, int _slot_id, COD _cod, OnlineTransaction _online){
             customer_id = _customer_id;
             vendor_id = inventory.item_list[_item_id].get_vendor_id();
@@ -446,6 +476,7 @@ class Order{
             vendor_list[vendor_id].orders.push_back(order_id);
             inventory.quantity[_item_id] -= _quantity;
         }
+        void decnt(){Order::total_orders--;}
         int get_order_id() {return order_id;}
         int get_customer_id() {return customer_id;}
         int get_vendor_id() {return vendor_id;}
@@ -495,6 +526,7 @@ class DeliverySlot{
             slot_id = total_slots++;
             slot_list.push_back(*this);
         }
+        void decnt(){DeliverySlot::total_slots--;}
         string get_name() {return name;}
         string set_name(string _name) {name = _name;}
         string get_time_slot() {return time_slot;}
@@ -526,11 +558,14 @@ class Admin : public User{
     
     public:
         static int total_admins;
-        Admin() {}
+        Admin() {
+            Admin::total_admins++;
+        }
         Admin(string _name,string _pass,string _email):User(_name,_pass,_email) {
-            user_id = ++Admin::total_admins;
+            user_id = Admin::total_admins++;
             admin_list.push_back(*this);
         }
+        void decnt(){Admin::total_admins--;}
         void create_vendor(string _name, string _pass, string _email, int _account, int _phone, string _address){
             Vendor new_vendor(_name, _pass, _email, _account, _phone, _address);
         }

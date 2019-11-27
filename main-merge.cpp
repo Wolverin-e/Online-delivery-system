@@ -1,6 +1,25 @@
 #include "definations.h"
 Customer *current_user = NULL;
-
+void home_page();
+void login();
+void register_page();
+#define cls system("clear")
+void s(char x)
+{
+    system("sleep "+x);
+}
+string takepass()
+{
+    string pass ="";
+   char ch;
+   ch=getchar();
+   while(ch != '\n'){//character 13 is enter
+      pass.push_back(ch);
+      cout<<"*";
+      ch = getchar();
+   }
+   return pass;
+}
 void delete_from_cart()
 {
     system("clear");
@@ -147,6 +166,7 @@ void search_by_name()
         }
     }
     cout<<"Name not found"<<endl;
+    system("sleep 1");
 }
 
 
@@ -155,11 +175,21 @@ void search_by_id()
     system("clear");
     int item_id,flag=0;
     cout << "Enter the id of item you want to search :";cin >> item_id;
-    if(inventory.quantity[item_id]){
-        inventory.item_list[item_id].display_item();
-        flag = 1;
+    if(inventory.item_list.size()>0)
+    {
+        if(inventory.quantity[item_id]){
+            inventory.item_list[item_id].display_item();
+            cout<<"---------------------\n";
+            flag = 1;
+        }
     }
-
+    else
+    {
+        cout<<"Item id not Found"<<endl;
+        system("sleep 1");
+        return;
+    }
+    
     char c;
     if(flag)
     {
@@ -201,7 +231,7 @@ void view_order_list()
     for(int i=0;i<orders.size();i++){
         order_list[orders[i]].print_order();
     }
-    system("sleep 5");
+    system("sleep 1");
 }
 
 void init(int clr)
@@ -220,7 +250,7 @@ void init(int clr)
     system("clear");
     switch(_option) {
         case 1: search_by_name(); init(1); break;
-        case 2: search_by_id(); init(1); break;
+        case 2: search_by_id();init(1); break;
         case 3: view_order_list(); init(0); break;
         case 4: view_shopping_cart(); init(1); break;
         case 5: checkout(); init(1); break;
@@ -235,24 +265,45 @@ void init(int clr)
 Vendor *current_Vendor = NULL;
 void add_new_item()
 {
+    system("clear");
     string name, category, description;
-    int price, vendor_id, discount;
+    int price, vendor_id, discount,quant;
     char choice;
     cout << "Enter Item Name: "; cin >> name;
     cout << "Choose Category: "; cin >> category;
     getline(cin, description);
     cout << "Enter description: ";cout.flush();getline(cin, description);
     cout << "Enter Item Price: ";cin >> price;
+    cout <<"Enter the quantity you would like to add: "; cin>>quant;
     cout << "Would you like to keep discount on such item(Y/N): ";cin >> choice;
     if (choice == 'Y'||choice=='y') cout << "Enter Discount(%%): ", cin >> discount;
     else discount = 0;
-    current_Vendor->add_new_item(name, category, description, price, 0);
+    current_Vendor->add_new_item(name, category, description, price, quant);
+}
+void view_item_list_vendor()
+{
+    system("clear");
+    if(current_Vendor->get_items().size()>0){
+    current_Vendor->view_item_list();
+    cout<<"---------------------\n";
+    system("sleep 2");
+    }
+    else
+    {
+        cout<<"Empty Item List\n";
+        system("sleep 1");
+        system("clear");
+    }
+    
+
 }
 void update_exisiting_item()
 {
+    if(current_Vendor->get_items().size()>0){
+    view_item_list_vendor();
     string name;
     int _item_id, _new_price;
-    cout << "Enter Item id: "; cin >> _item_id;
+    cout << "Enter Item id of item you would like to update (from above list): "; cin >> _item_id;
     vector<int>& items = current_Vendor->get_items();
     auto it = find(items.begin(), items.end(), _item_id);
     if(it != items.end()){
@@ -274,12 +325,22 @@ void update_exisiting_item()
             default: break;
         }
     }
-}
-void view_item_list_vendor()
-{
-    system("clear");
-    current_Vendor->view_item_list();
-    system("sleep 2");
+    else
+    {
+        system("clear");
+        cout<<"Invalid Item id/Can't update item of this id\n";
+        cout<<"Select id from following list: \n";
+        system("sleep 3");
+        update_exisiting_item();
+    }
+    }
+    else
+    {
+        cout<<"Empty item list. To update, First add an item\n";
+        system("sleep 2");
+    }
+    
+    
 }
 void update_info()
 {
@@ -319,9 +380,19 @@ void update_info()
 }
 
 void view_order_list_vendor(){
+    system("clear");
     vector<int> orders = current_Vendor->get_orders();
-    for(auto it=orders.begin(); it!=orders.end(); ++it){
-        order_list[*it].print_order();
+    if(orders.size()>0){
+        for(auto it=orders.begin(); it!=orders.end(); ++it){
+            order_list[*it].print_order();
+        }
+        system("sleep 2");
+    }
+    else
+    {
+        cout<<"Empty Order List\n";
+        system("sleep 1");
+        system("clear");
     }
 }
 
@@ -333,22 +404,267 @@ void init_vendor(int clr)
          << "3.View Order List\n"
          << "4.View Item List\n"
          << "5.Update Info\n"
-         << "6.Logout\n";
+         << "6.Logout\n"
+         << "ENTER CHOICE: ";
     int _option = 0;
     cin>>_option;
     switch(_option) {
         case 1: add_new_item(); init_vendor(1);break;
         case 2: update_exisiting_item(); init_vendor(1); break;
-        case 3: view_order_list_vendor(); break;
+        case 3: view_order_list_vendor(); init_vendor(0); break;
         case 4: view_item_list_vendor();init_vendor(0);break;
         case 5: update_info();init_vendor(1);break;
-        case 6: break;
-        default: cout<<"Incorrect Choice\nEnter Again \n"; getchar(); init_vendor(1); break;
+        case 6: system("clear"); break;
+        default: cout<<"Incorrect Choice\nEnter Again \n";system("sleep 0"); getchar(); init_vendor(1); break;
     }
 }
-
+void making_customer()
+{
+    cls;
+    string uname,pass,email,address;
+    int phone,type;
+    int flag=0,inner=1;
+    while(flag!=1&&inner==1)
+    {
+        cout<<"Enter your name(handle): ";cin>>uname;
+        for(auto it = customer_list.begin(); it != customer_list.end(); ++it){
+            inner=0;
+            if(it->get_name()==uname){
+                cout<<"Handle has been already taken,try another!!\n";
+                system("sleep 1");
+                cls;
+                flag=0;break;
+            }
+            else flag=1;
+        }
+        if(flag||inner)
+        {
+            for(auto it = vendor_list.begin(); it != vendor_list.end(); ++it)
+            {
+                inner=0;
+                if(it->get_name()==uname){
+                    cout<<"Handle has been already taken,try another!!\n";
+                    system("sleep 1");
+                    cls;
+                    flag=0;break;
+                }
+                else flag=1;
+            }
+        }
+        if(flag||inner)
+        {
+            for(auto it = admin_list.begin(); it != admin_list.end(); ++it)
+            {
+                inner=0;
+                if(it->get_name()==uname){
+                    cout<<"Handle has been already taken,try another!!\n";
+                    system("sleep 1");
+                    cls;
+                    flag=0;break;
+                }
+                else flag=1;
+            }
+        }
+        if(inner==1)flag=1;
+    }
+    cout<<"Enter your password: ";cin>>pass;
+    flag=0,inner=1;
+    while(flag!=1&&inner==1)
+    {
+        inner=0;
+        cout<<"Enter your email: ";cin>>email;
+        for(auto it = customer_list.begin(); it != customer_list.end(); ++it){
+            if(it->get_email_id()==email){
+                inner=1;
+                cout<<"This email id is already registered by a customer,try again!!\n";
+                flag=0;break;
+            }
+            else flag=1;
+        }
+    }
+    cout<<"Enter your adress with your state and city: ";cin>>address;
+    cout<<"Enter your contact no: ";cin>>phone;
+    cout<<"Enter your type(1:faculty 0:student): ";cin>>type;
+    Customer c1(uname,pass,email,address,phone,type);
+    cls;
+    cout<<"Now login with these credentials\n";
+    system("sleep 2");
+}
+void making_vendor()
+{
+    cls;
+    string uname,pass,email,address;
+    int phone,account;
+    int flag=0,inner = 1;
+    while(flag!=1&&inner==1)
+    {
+        cout<<"Enter your name(handle): ";cin>>uname;
+        for(auto it = customer_list.begin(); it != customer_list.end(); ++it){
+            inner=0;
+            if(it->get_name()==uname){
+                cout<<"Handle has been already taken,try another!!\n";
+                system("sleep 1");
+                cls;
+                flag=0;break;
+            }
+            else flag=1;
+        }
+        if(flag||inner)
+        {
+            for(auto it = vendor_list.begin(); it != vendor_list.end(); ++it)
+            {
+                inner=0;
+                if(it->get_name()==uname){
+                    cout<<"Handle has been already taken,try another!!\n";
+                    system("sleep 1");
+                    cls;
+                    flag=0;break;
+                }
+                else flag=1;
+            }
+        }
+        if(flag||inner)
+        {
+            for(auto it = admin_list.begin(); it != admin_list.end(); ++it)
+            {
+                inner=0;
+                if(it->get_name()==uname){
+                    cout<<"Handle has been already taken,try another!!\n";
+                    system("sleep 1");
+                    cls;
+                    flag=0;break;
+                }
+                else flag=1;
+            }
+        }
+        if(inner==1)flag=1;
+    }
+    cout<<"Enter your password: ";cin>>pass;
+    flag=0,inner=1;
+    while(flag!=1&&inner==1)
+    {
+        inner=0;
+        cout<<"Enter your email: ";cin>>email;
+        for(auto it = vendor_list.begin(); it != vendor_list.end(); ++it){
+            inner=1;
+            if(it->get_email_id()==email){
+                cout<<"This email id is already registered by a vendor,try again!!\n";
+                flag=0;break;
+            }
+            else flag=1;
+        }
+    }
+    cout<<"Enter your adress with your state and city: ";cin>>address;
+    cout<<"Enter your contact no: ";cin>>phone;
+    cout<<"Enter your account no: ";cin>>account;
+    Vendor v1(uname,pass,email,phone,account,address);
+    cls;
+    cout<<"Now login with these credentials\n";
+    system("sleep 2");
+}
+void making_admin()
+{
+    cls;
+    string uname,pass,email;
+    int flag=0,inner = 1;
+    while(flag!=1&&inner==1)
+    {
+        cout<<"Enter your name(handle): ";cin>>uname;
+        for(auto it = customer_list.begin(); it != customer_list.end(); ++it){
+            inner=0;
+            if(it->get_name()==uname){
+                cout<<"Handle has been already taken,try another!!\n";
+                system("sleep 1");
+                cls;
+                flag=0;break;
+            }
+            else flag=1;
+        }
+        if(flag||inner)
+        {
+            for(auto it = vendor_list.begin(); it != vendor_list.end(); ++it)
+            {
+                inner=0;
+                if(it->get_name()==uname){
+                    cout<<"Handle has been already taken,try another!!\n";
+                    system("sleep 1");
+                    cls;
+                    flag=0;break;
+                }
+                else flag=1;
+            }
+        }
+        if(flag||inner)
+        {
+            inner=0;
+            for(auto it = admin_list.begin(); it != admin_list.end(); ++it)
+            {
+                inner=0;
+                if(it->get_name()==uname){
+                    cout<<"Handle has been already taken,try another!!\n";
+                    system("sleep 1");
+                    cls;
+                    flag=0;break;
+                }
+                else flag=1;
+            }
+        }
+        if(inner==1)flag=1;
+    }
+    cout<<"Enter your password: ";cin>>pass;
+    flag=0,inner = 1;
+    while(flag!=1&&inner==1)
+    {
+        inner=0;
+        cout<<"Enter your email: ";cin>>email;
+        for(auto it = admin_list.begin(); it != admin_list.end(); ++it){
+            inner=1;
+            if(it->get_email_id()==email){
+                cout<<"This email id is already registered by a vendor,try again!!\n";
+                cout<<"hello"<<endl;
+                flag=0;break;
+            }
+            else flag=1;
+        }
+    }
+    Admin a1(uname,pass,email);
+    cls;
+    cout<<"Now login with these credentials\n";
+    system("sleep 2");
+}
+void register_page()
+{
+    cls;
+    cout<<"1. As admin \n"
+        <<"2. As customer \n"
+        <<"3. As Vendor\n"
+        <<"4. Already registered\n";
+    int option =0;cin>>option;
+    if(option==1)making_admin();
+    else if(option==2)making_customer();
+    else if(option==3)making_vendor();
+    else if(option==4){cout<<"LOGIN THEN!!!!\n";system("sleep 2");home_page();}
+    else {cout<<"Incorrect Choice\nEnter Again \n";s('1'); home_page();}
+}
+void home_page()
+{
+    system("clear");
+    cout<<"1. Login\n"
+        <<"2. Register\n"
+        <<"3. Exit\n"
+        <<"ENTER CHOICE:";
+    int option = 0;cin>>option;
+    switch(option)
+    {
+        case 1: login();break;
+        case 2: register_page();home_page();break;
+        case 3: return;
+        default: cout<<"Incorrect Choice\nEnter Again \n";system("sleep 1"); home_page(); break;
+    }
+}
 void login(){
     string uname, pass;
+    int flag=0;
     cout<<"EMAIL-ID: ";
     cin>>uname;
     cout<<"PASSWORD: ";
@@ -357,24 +673,36 @@ void login(){
     for(auto it = customer_list.begin(); it != customer_list.end(); ++it){
         if(it->get_email_id() == uname && it->validate(pass)){
             current_user = &(*it);
+            flag=1;
             init(1);
-            login();
+            home_page();
         }
     }
     for(auto it = vendor_list.begin(); it != vendor_list.end(); ++it){
         if(it->get_email_id() == uname && it->validate(pass)){
             current_Vendor = &(*it);
+            flag=1;
             init_vendor(1);
-            login();
+            home_page();
         }
     }
+    if(!flag)
+    {
+        cout<<"Username or password is invalid\n";
+        system("sleep 1");
+        system("clear");
+        home_page();
+    }
 }
-
 int main()
 {
     string s = "abcd";
-    Vendor v2(s,s,s,123,1234,s);
-    Customer c1(s, s, "abc", s, 0, 0);
-    v2.add_new_item("shampoo", "cosmetics", "sexy", 50, 35);
-    login();
+    // Vendor v2("Manav","san01","man@",12345,958698,"randikhana");
+    // Customer c1("nishant","jain","nish@","kotha",97823,0);
+    // v2.add_new_item("shampoo", "cosmetics", "sexy", 50, 35);
+    home_page();
+    // cout<<admin_list.size();
+    // cout<<customer_list.size();
+    // cout<<vendor_list.size();
+
 }

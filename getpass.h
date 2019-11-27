@@ -22,7 +22,7 @@ string getpass(const char *prompt, bool show_asterisk=true) {
   const char RETURN=10;
   string password;
   unsigned char ch=0;
-  cout <<prompt<<endl;
+  cout <<prompt;
   while((ch=getch())!=RETURN)
     {
        if(ch==BACKSPACE)
