@@ -1,67 +1,99 @@
 #include "definations.h"
 Customer *current_user = NULL;
-void display_cart()
-{
-    vector<int> item = current_user->get_cart().get_items();
-    int count=1;
-    for(int i=0;i<item.size();i++)
-    {
-        cout<<inventory.item_list[i];
-    }
-}
+
 void delete_from_cart()
 {
-    display_cart();
+    system("clear");
+    current_user->get_cart().print_cart();
     int item_id;
     cout << "Enter the Item id of Item you want to delete from above: ";cin >> item_id;
     current_user->get_cart().delete_item(item_id);
-    display_cart();
+    current_user->get_cart().print_cart();
+    cout<<"DELETING... "<<item_id<<"\n";
+    system("sleep 1");
+    system("clear");
 }
+
+
 void clear_cart()
 {
+    system("clear");
     current_user->get_cart().clear_cart();
+    cout<<"CLEARING...\n";
+    system("sleep 1");
+    system("clear");
 }
-void chang_quantity()
+
+
+void change_quantity()
 {
     int item_id, new_q;
     cout << "Enter the Item id of Item and its new quantity: ";cin >> item_id >> new_q;
-    current_user->get_cart().change_quantity(item_id, new_q);
-    display_cart();
+    if(current_user->get_cart().change_quantity(item_id, new_q)){
+        cout<<"CHANGING...";
+        current_user->get_cart().print_cart();
+        system("sleep 3");
+        system("clear");
+        return;
+    }
+    cout<<"INVALID ITEM ID";
+    system("sleep 2");
+    system("clear");
 }
+
+
 void checkout()
 {
-    display_cart();
-    cout<<"1.Online payment\n"
-        <<"2.COD\n"
-        <<"3.Cancel\n";
-    ////// left_showing_the_slots
-    int option;cin>>option;
-    int slot_id;cin>>slot_id;
-    Cart cart = current_user->get_cart();
-    vector<int> items = cart.get_items();
-    vector<int> quantity = cart.get_quantity();
-    map<int, int> payments;
-    int user_id = current_user->get_user_id();
-    COD empty_cod;
-    OnlineTransaction empty_online;
-    if(option == 1){
+    system("clear");
+    if(! current_user->get_cart().is_empty()){
+        current_user->get_cart().print_cart();
+        cout<<"1.Online payment\n"
+            <<"2.COD\n"
+            <<"3.Cancel\n";
+        int option;cin>>option;
+        system("clear");
+        //
+        Cart cart = current_user->get_cart();
+        vector<int> items = cart.get_items();
+        vector<int> quantity = cart.get_quantity();
+        map<int, int> payments;
+        int user_id = current_user->get_user_id();
+        COD empty_cod;
+        OnlineTransaction empty_online;
+        if(option == 1){
+            for(auto it = slot_list.begin(); it != slot_list.end(); ++it){
+                it->display_slot();
+            }
+            cout<<"ENTER SLOT-ID: ";
+            int slot_id;cin>>slot_id;
+            //
             for(int i=0; i<items.size(); i++){
                 int bank_id = vendor_list[inventory.item_list[items[i]].get_vendor_id()].get_bank_account();
-                cout<<bank_id<<" "<<quantity[i]<<" "<<items[i]<<"\n";
                 payments[bank_id] = (inventory.item_list[items[i]].get_price())*quantity[i];
             }
             OnlineTransaction online(cart, 1, payments);
             for(int i=0; i<items.size();i++){
-                cout<<"Generation order"<<i<<"\n";
                 Order order(user_id, items[i], quantity[i], slot_id, empty_cod, online);
             }
-    } else if(option == 2){
+        } else if(option == 2){
+
+            for(auto it = slot_list.begin(); it != slot_list.end(); ++it){
+                it->display_slot();
+            }
+            cout<<"ENTER SLOT-ID: ";
+            int slot_id;cin>>slot_id;
             COD cod(cart);
             for(int i=0; i<items.size();i++){
                 Order order(user_id,  items[i], quantity[i], slot_id, cod, empty_online);
             }
-    } else return;
+        }
+        system("clear");
+        return;
+    }
+    return;
 }
+
+
 void cart_operations()
 {
     int item_id,new_quant,option = 0;
@@ -69,63 +101,66 @@ void cart_operations()
        << "2.Clear Cart\n"
        << "3.Change Quantity\n"
        << "4.Checkout\n"
-       << "5.Return to inventory\n";
+       << "5.Clear Console\n"
+       << "6.Return to inventory\n"
+       << "\nENTER CHOICE: ";
     cin>>option;
     switch(option)
     {
         case 1: delete_from_cart(); cart_operations();break;
         case 2: clear_cart(); cart_operations(); break;
-        case 3: chang_quantity();cart_operations(); break;
+        case 3: change_quantity();cart_operations(); break;
         case 4: checkout();cart_operations();break;
-        case 5:return;
+        case 5: system("clear"); cart_operations(); break;
+        case 6: system("clear"); return;
         default: cout<<"Incorrect Choice\nEnter Again \n"; getchar(); cart_operations(); break;
     }
 }
-void Search_by_name()
+
+
+void search_by_name()
 {
+    system("clear");
     string name;
     char c;
-    int count=1,flag=0;
     cout << "Enter the name of item you want to search :";cin >> name;
-    for(auto it = inventory.item_list.begin(); it != inventory.item_list.end(); ++it)
-    {
-        if((*it).get_name()==name)
-        {
-            flag=1;
-            cout<<count<<". "<<endl;
-            cout<<(*it);
-        }
-        count++;
-    }
+    int flag = inventory.search_item(name);
     if(flag)
     {
+        cout<<"---------------------\n";
         cout << "Do you want to add any item to your cart?(Y/N): "; cin>>c;
         if(c=='Y'||c=='y')
         {
-            int add_id, quant;
-            cout << "Enter the item id(from above) and quantity of that item u want to add (id quantity): "; cin >> add_id >> quant;
-            current_user->get_cart().add_to_cart(add_id, quant);
+            int _item_id, quant;
+            cout << "Enter the item id(from above) and quantity of that item u want to add (id quantity): "; cin >> _item_id >> quant;
+            quant = current_user->get_cart().add_to_cart(_item_id, quant);
+            if(quant == 2){
+                cout<<"Enter a valid choice.\n";
+                system("sleep 3");
+                search_by_name();
+            } else if(quant == 1){
+                cout<<"Quantity Not Abvailable.\n";
+                system("sleep 3");
+                search_by_name();
+            }
             return;
         }
     }
     cout<<"Name not found"<<endl;
 }
-void Search_by_id()
+
+
+void search_by_id()
 {
+    system("clear");
     int item_id,flag=0;
-    char c;
     cout << "Enter the id of item you want to search :";cin >> item_id;
-    for(auto it = inventory.item_list.begin(); it != inventory.item_list.end(); ++it)
-    {
-        if((*it).get_item_id()==item_id)
-        {
-            cout<<(*it);
-            flag=1;
-            if((*it).is_available()!=1)
-            cout<<"Not Available\n";
-            break;
-        }
+    if(inventory.quantity[item_id]){
+        inventory.item_list[item_id].display_item();
+        flag = 1;
     }
+
+    char c;
     if(flag)
     {
         cout << "Do you want to add this item to your cart?(Y/N): ";cin >> c;
@@ -133,56 +168,78 @@ void Search_by_id()
         {
             int quant;
             cout << "Enter the quantity u want to add (quantity): ";cin >> quant;
-            current_user->get_cart().add_to_cart(item_id, quant);return;
+            quant = current_user->get_cart().add_to_cart(item_id, quant);
+            if(quant == 2){
+                cout<<"Enter a valid choice.\n";
+                system("sleep 3");
+                search_by_id();
+            } else if(quant == 1){
+                cout<<"Quantity Not Abvailable.\n";
+                system("sleep 3");
+                search_by_id();
+            }
+            return;
         }
     }
-    cout<<"Id not found"<<endl;
 }
+
+void view_full_inventory(){
+    inventory.display_inventory();
+    cout<<"---------------------\n";
+    system("sleep 3");
+}
+
 void view_shopping_cart()
 {
-    display_cart();
+    current_user->get_cart().print_cart();
     cart_operations();
 }
+
 void view_order_list()
 {
-    cout<<"User id :"<<current_user->get_user_id()<<endl;
-
     vector<int> orders = customer_list[current_user->get_user_id()].get_orders();
     for(int i=0;i<orders.size();i++){
-        cout<<order_list[orders[i]]<<endl;
+        order_list[orders[i]].print_order();
     }
-    // cout<<orders[0]<<endl;
+    system("sleep 5");
 }
-void init()
+
+void init(int clr)
 {
+    if(clr) system("clear");
     cout << "1.Search Item by Name\n"
        << "2.Search Item by id\n"
        << "3.View Order List\n"
        << "4.View Shopping Cart\n"
        << "5.Checkout\n"
        << "6.View Full Inventory\n"
-       << "7.Logout\n";
-    int _option = 0;
-    cin>>_option;
+       << "7.Clear Console\n"
+       << "8.Logout\n"
+       << "\nENTER CHOICE: ";
+    int _option = 0; cin>>_option;
+    system("clear");
     switch(_option) {
-        case 1: Search_by_name(); init();break;
-        case 2: Search_by_id(); init(); break;
-        case 3: view_order_list();init(); break;
-        case 4: view_shopping_cart();init();break;
-        case 5: checkout();init();break;
-        case 7: break;
-        default: cout<<"Incorrect Choice\nEnter Again \n"; getchar(); init(); break;
+        case 1: search_by_name(); init(1); break;
+        case 2: search_by_id(); init(1); break;
+        case 3: view_order_list(); init(0); break;
+        case 4: view_shopping_cart(); init(1); break;
+        case 5: checkout(); init(1); break;
+        case 6: view_full_inventory(); init(0); break;
+        case 7: init(1);
+        case 8: return;
+        default: cout<<"Incorrect Choice\nEnter Again \n"; getchar(); break;
     }
 }
+
+
+
 int main()
 {
     string s = "nishant";
     Vendor new_vend(s,s,s,123,9586,s);
     Customer c2(s,s,s,s,9686,1);
     current_user=&c2;
-    // Item v1("shampoo","cosmetics","good",20,0);
-    new_vend.add_new_item("shampoo","cosmetics","good",20);
+    new_vend.add_new_item("shampoo","cosmetics","good", 20, 50);
     current_user->get_cart().add_to_cart(0,3);
-    // inventory.view_items_inv();
-    init();
+    init(1);
 }

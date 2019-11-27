@@ -30,13 +30,10 @@ class Inventory{
     public:
         vector<int> quantity;
         vector<Item> item_list;
-        ////////////////////////
         void add(Item _item);
-        void view_items_inv();
-        //search_item(name)
-        //display_inventory()
+        int search_item(string _name);
+        void display_inventory();
         bool is_present(int _item_id){return quantity[_item_id];}
-        //filter(category)
 };
 
 Inventory inventory;
@@ -49,7 +46,7 @@ class Item{
     public:
         static int total_items;
         Item() {}
-        Item(string _name, string _category, string _description, int _price, int _vendor_id){
+        Item(string _name, string _category, string _description, int _price, int _vendor_id, int _quantity){
             name = _name;
             category = _category;
             description = _description;
@@ -58,6 +55,7 @@ class Item{
             discount = 0;
             item_id = total_items++;
             inventory.add(*this);
+            inventory.quantity[item_id] = _quantity;
         }
         string get_name() {return name;}
         void set_name(string _name) {name = _name;}
@@ -71,10 +69,24 @@ class Item{
         int get_discount() {return discount;}
         void set_discount(int _discount) {discount = _discount;}
         int get_item_id() {return item_id;}
-        ////////////////////////
-        void display_item() {}
-        ////////////////////////
-        bool is_available() {return inventory.quantity[item_id] != 0;}
+        void display_item() {
+            cout<<"---------------------\n"
+                <<"ID: "<<item_id<<"\n"
+                <<"NAME: "<<name<<"\n"
+                <<"CATEGORY: "<<category<<"\n"
+                <<"DESCRIPTION: "<<description<<"\n"
+                <<"PRICE: "<<price<<"\n"
+                <<"QUANTITY-LEFT: "<<inventory.quantity[item_id]<<"\n";
+        }
+        void display_item(int _quantity) {
+            cout<<"---------------------\n"
+                <<"ID: "<<item_id<<"\n"
+                <<"NAME: "<<name<<"\n"
+                <<"CATEGORY: "<<category<<"\n"
+                <<"DESCRIPTION: "<<description<<"\n"
+                <<"PRICE: "<<price<<"\n"
+                <<"QUANTITY-ODERED: "<<_quantity<<"\n";
+        }
         ////////////////////////
         friend ostream & operator << (ostream &out, const Item &item) {
             out<<item.item_id<<" "<<item.price<<" "<<item.vendor_id<<" "<<item.discount<<endl;
@@ -99,7 +111,6 @@ class Cart{
     private:
         vector<int> items;
         vector<int> quantity;
-        vector<Item> view;
         int total_price;
     public:
         Cart(){
@@ -108,22 +119,18 @@ class Cart{
         int get_total_price() { return total_price;}
         vector<int> get_items() {return items;}
         vector<int> get_quantity() {return quantity;}
-        ////////////////////////
-        void add_to_cart(int _item_id, int _quantity){
-            // vector<int>::iterator it = find(inventory.item_list.begin(), inventory.item_list.end(), _item_id);
-            for(auto it = inventory.item_list.begin(); it != inventory.item_list.end(); ++it)
+        int add_to_cart(int _item_id, int _quantity){
+            if(_item_id<inventory.item_list.size())
             {
-
-                if((*it).get_item_id()==_item_id)
-                {
+                if(inventory.quantity[_item_id]>_quantity){
                     items.push_back(_item_id);
                     quantity.push_back(_quantity);
-                    // total_price += inventory.item_list[_item_id].get_price()*_quantity;
-                    return;
+                    total_price += inventory.item_list[_item_id].get_price()*_quantity;
+                    return 0;
                 }
+                return 1;
             }
-            cout<<"invalid item id\n";
-            
+            return 2;
         }
         void clear_cart(){
             items.clear();
@@ -134,16 +141,27 @@ class Cart{
             vector<int>::iterator it = find(items.begin(), items.end(), _item_id);
             if(it != items.end()){
                 items.erase(it);
+                auto it2 = it-items.begin()+quantity.begin();
+                quantity.erase(it2);
                 return;
             }
             cout<<"Invalid item id";
         }
-        void change_quantity(int _item_id, int _quantity){
+        int change_quantity(int _item_id, int _quantity){
             vector<int>::iterator it = find(items.begin(), items.end(), _item_id);
-            quantity[it-items.begin()] = _quantity;
+            if(inventory.quantity[_item_id]>_quantity){
+                quantity[it-items.begin()] = _quantity;
+                return 1;
+            }
+            return 0;
         }
-        // void checkout(){}
-        // void print_cart(){}
+        void print_cart(){
+            for(int i=0; i<items.size(); i++){
+                inventory.item_list[items[i]].display_item(quantity[i]);
+            }
+            cout<<"---------------------\n";
+        }
+        bool is_empty(){return !items.size();}
         ////////////////////////
         friend ostream & operator << (ostream &out, const Cart &cart) {
             for(auto it = cart.items.begin(); it != cart.items.end(); ++it)
@@ -263,11 +281,25 @@ void Inventory::add(Item _item){
     item_list.push_back(_item);
     quantity.push_back(0);
 }
-void Inventory::view_items_inv()
-{
-    // cout<<item_list.size();
+
+int Inventory::search_item(string _name){
+    int count=1,flag=0;
     for(auto it = item_list.begin(); it != item_list.end(); ++it)
-        cout<<*it<<endl;
+    {
+        if(((*it).get_name()+(*it).get_category()).find(_name) != string::npos)
+        {
+            flag=1;
+            it->display_item();
+        }
+        count++;
+    }
+    return flag;
+}
+
+void Inventory::display_inventory(){
+    for(auto it = item_list.begin(); it != item_list.end(); ++it){
+        it->display_item();
+    }
 }
 
 
@@ -297,8 +329,8 @@ class Vendor : public User{
         string get_address() {return address;}
         void set_address(string _address) {address = _address;}
         ////////////////////////
-        void add_new_item(string _name, string _category, string _description, int _price){
-            Item new_item(_name, _category, _description, _price, user_id);
+        void add_new_item(string _name, string _category, string _description, int _price, int _qunatity){
+            Item new_item(_name, _category, _description, _price, user_id, _qunatity);
             items.push_back(new_item.get_item_id());
             view.push_back(new_item);
         }
@@ -402,6 +434,7 @@ class Order{
             order_list.push_back(*this);
             customer_list[customer_id].orders.push_back(order_id);
             vendor_list[vendor_id].orders.push_back(order_id);
+            inventory.quantity[_item_id] -= _quantity;
         }
         int get_order_id() {return order_id;}
         int get_customer_id() {return customer_id;}
@@ -415,7 +448,12 @@ class Order{
         void cancel(){status = "cancelation requested";}
         void confirm_cancellation(){status = "cancelled";}
         //void refund()
-        //print_order()
+        void print_order(){
+            cout<<"---------------------\n"
+                <<"ORDER-ID: "<<order_id<<"\n";
+            inventory.item_list[item_id].display_item(quantity);
+            cout<<"---------------------\n";
+        }
         ////////////////////////
         friend ostream & operator << (ostream &out, const Order &order) {
             out<<order.order_id<<" "<<order.customer_id<<" "<<order.item_id<<" "<<order.vendor_id<<" "<<order.quantity<<" ";
@@ -440,17 +478,22 @@ class DeliverySlot{
         string time_slot, name;
     public:
         static int total_slots;
-        DeliverySlot() {}
+        DeliverySlot(){}
         DeliverySlot(string _name, string _time_slot){
             name = _name;
             time_slot = _time_slot;
-            slot_id = ++total_slots;
+            slot_id = total_slots++;
             slot_list.push_back(*this);
         }
         string get_name() {return name;}
         string set_name(string _name) {name = _name;}
         string get_time_slot() {return time_slot;}
         void set_time_slot(string _time_slot) {time_slot = _time_slot;}
+        void display_slot(){
+            cout<<"SLOT-ID: "<<slot_id<<"\n"
+                <<"NAME: "<<name<<"\n"
+                <<"TIME: "<<time_slot<<"\n";
+        }
         ////////////////////////
         friend ostream & operator << (ostream &out, const DeliverySlot &slot) {
             out<<slot.slot_id<<"\n";
