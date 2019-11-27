@@ -123,7 +123,7 @@ void search_by_name()
     system("clear");
     string name;
     char c;
-    cout << "Enter the name of item you want to search :";cin >> name;
+    cout << "Enter the name/category of item you want to search :";cin >> name;
     int flag = inventory.search_item(name);
     if(flag)
     {

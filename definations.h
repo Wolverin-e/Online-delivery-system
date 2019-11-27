@@ -123,8 +123,19 @@ class Cart{
             if(_item_id<inventory.item_list.size())
             {
                 if(inventory.quantity[_item_id]>_quantity){
-                    items.push_back(_item_id);
-                    quantity.push_back(_quantity);
+                    auto it = find(items.begin(), items.end(), _item_id);
+                    if(it == items.end())
+                    {
+                        items.push_back(_item_id);
+                        quantity.push_back(_quantity);
+                    } else {
+                        auto q = (it-items.begin()+quantity.begin());
+                        if(*q + _quantity < inventory.quantity[_item_id]){
+                            *q = *q+_quantity;
+                        } else {
+                            return 1;
+                        }
+                    }
                     total_price += inventory.item_list[_item_id].get_price()*_quantity;
                     return 0;
                 }
