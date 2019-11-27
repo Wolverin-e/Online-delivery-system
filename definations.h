@@ -87,6 +87,9 @@ class Item{
                 <<"PRICE: "<<price<<"\n"
                 <<"QUANTITY-ODERED: "<<_quantity<<"\n";
         }
+        void set_quantity(int _quantity){
+            inventory.quantity[item_id] = _quantity;
+        }
         ////////////////////////
         friend ostream & operator << (ostream &out, const Item &item) {
             out<<item.item_id<<" "<<item.price<<" "<<item.vendor_id<<" "<<item.discount<<endl;
@@ -320,7 +323,6 @@ class Vendor : public User{
         int bank_account, phone;
         string address;
         vector<int> items; //item-reference-list
-        vector<Item> view;
         vector<int> orders; //order-reference-list
     public:
         friend Order;
@@ -339,18 +341,15 @@ class Vendor : public User{
         void set_bank_account(int _bank_account) {bank_account = _bank_account;}
         string get_address() {return address;}
         void set_address(string _address) {address = _address;}
+        vector<int>& get_items(){return items;}
         ////////////////////////
         void add_new_item(string _name, string _category, string _description, int _price, int _qunatity){
             Item new_item(_name, _category, _description, _price, user_id, _qunatity);
             items.push_back(new_item.get_item_id());
-            view.push_back(new_item);
         }
         void view_item_list(){
-            for(int i=0;i<view.size();i++)cout<<view[i];
-        }
-        void update_item(int item_id,int new_price)
-        {
-            // Updating
+            for(int i=0;i<items.size();i++)
+            inventory.item_list[items[i]].display_item();
         }
         ////////////////////////
         friend ostream & operator << (ostream &out, const Vendor &vendor) {
