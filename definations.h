@@ -61,9 +61,7 @@ class Item{
         int price, vendor_id, discount, item_id;
     public:
         static int total_items;
-        Item() {
-            Item::total_items++;
-        }
+        Item() {Item::total_items++;}
         Item(string _name, string _category, string _description, int _price, int _vendor_id, int _quantity){
             name = _name;
             category = _category;
@@ -75,6 +73,9 @@ class Item{
             inventory.add(*this);
             inventory.quantity[item_id] = _quantity;
             // inventory.quantity.push_back(_quantity);
+        }
+        void reinit() {
+            // vendor_list[vendor_id].get_items().push_back(item_id);
         }
         void decnt(){Item::total_items--;}
         string get_name() {return name;}
@@ -221,15 +222,14 @@ class User{
         int user_id;
     public:
         static int total_users;
-        User() {
-            User::total_users++;
-        }
+        User() {User::total_users++;}
         User(string _name, string _pass, string _email){
             name = _name;
             pass = _pass;
             email_id = _email;
             ++User::total_users;
         }
+        void reinit() {}
         void decnt(){User::total_users--;}
         string get_name() {return name;}
         void set_name(string _name) {name = _name;}
@@ -275,9 +275,7 @@ class Customer : public User{
     public:
         friend Order;
         static int total_customers;
-        Customer() {
-            Customer::total_customers++;
-        }
+        Customer() {Customer::total_customers++;}
         Customer(string _name, string _pass, string _email, string _address, int _phone, int _type):User(_name, _pass, _email)
         {
             address = _address;
@@ -287,6 +285,7 @@ class Customer : public User{
             user_id = Customer::total_customers++;
             customer_list.push_back(*this);
         }
+        void reinit() {}
         void decnt(){Customer::total_customers--;}
         vector<int> get_orders(){return orders;}
         string get_address() {return address;}
@@ -353,9 +352,7 @@ class Vendor : public User{
     public:
         friend Order;
         static int total_vendors;
-        Vendor() {
-            Vendor::total_vendors++;
-        }
+        Vendor() {Vendor::total_vendors++;}
         Vendor(string _name, string _pass, string _email, int _account, int _phone, string _address):User(_name, _pass, _email){
             bank_account = _account;
             phone = _phone;
@@ -363,6 +360,7 @@ class Vendor : public User{
             user_id = Vendor::total_vendors++;
             vendor_list.push_back(*this);
         }
+        void reinit() {}
         void decnt(){Vendor::total_vendors--;}
         vector<int> get_orders(){return orders;}
         int get_bank_account() {return bank_account;}
@@ -383,7 +381,7 @@ class Vendor : public User{
         friend ostream & operator << (ostream &out, const Vendor &vendor) {
             out<<static_cast<const User &>(vendor)<<endl;
             out<<vendor.bank_account<<" "<<vendor.phone<<" ";
-            for(auto it = vendor.items.begin(); it != vendor.items.end(); ++it)
+            for(auto it = vendor.items.begin(); it != vendor.items.end(); ++it) 
                 out<<*it<<" ";
             for(auto it = vendor.orders.begin(); it != vendor.orders.end(); ++it)
                 out<<*it<<" ";   
@@ -393,10 +391,13 @@ class Vendor : public User{
         friend istream & operator >> (istream &in, Vendor &vendor) {
             in>>static_cast<User &>(vendor);
             in>>vendor.bank_account>>vendor.phone;
-            for(auto it = vendor.items.begin(); it != vendor.items.end(); ++it)
+            for(auto it = vendor.items.begin(); it != vendor.items.end(); ++it) {
                 in>>*it;
+                cout<<"Inside Vendor List"<<endl;
+            }
             for(auto it = vendor.orders.begin(); it != vendor.orders.end(); ++it)
                 in>>*it;
+            in.get();
             string _temp;
             getline(in,_temp); vendor.set_address(_temp);
             return in;
@@ -457,9 +458,7 @@ class Order{
         OnlineTransaction online;
     public:
         static int total_orders;
-        Order(){
-            Order::total_orders++;
-        }
+        Order(){Order::total_orders++;}
         Order(int _customer_id, int _item_id, int _quantity, int _slot_id, COD _cod, OnlineTransaction _online){
             customer_id = _customer_id;
             vendor_id = inventory.item_list[_item_id].get_vendor_id();
@@ -475,6 +474,10 @@ class Order{
             customer_list[customer_id].orders.push_back(order_id);
             vendor_list[vendor_id].orders.push_back(order_id);
             inventory.quantity[_item_id] -= _quantity;
+        }
+        void reinit() {
+            customer_list[customer_id].orders.push_back(order_id);
+            vendor_list[vendor_id].orders.push_back(order_id);
         }
         void decnt(){Order::total_orders--;}
         int get_order_id() {return order_id;}
@@ -519,13 +522,14 @@ class DeliverySlot{
         string time_slot, name;
     public:
         static int total_slots;
-        DeliverySlot(){}
+        DeliverySlot(){DeliverySlot::total_slots++;}
         DeliverySlot(string _name, string _time_slot){
             name = _name;
             time_slot = _time_slot;
             slot_id = total_slots++;
             slot_list.push_back(*this);
         }
+        void reinit() {}
         void decnt(){DeliverySlot::total_slots--;}
         string get_name() {return name;}
         string set_name(string _name) {name = _name;}
@@ -558,13 +562,12 @@ class Admin : public User{
     
     public:
         static int total_admins;
-        Admin() {
-            Admin::total_admins++;
-        }
+        Admin() {Admin::total_admins++;}
         Admin(string _name,string _pass,string _email):User(_name,_pass,_email) {
             user_id = Admin::total_admins++;
             admin_list.push_back(*this);
         }
+        void reinit() {}
         void decnt(){Admin::total_admins--;}
         void create_vendor(string _name, string _pass, string _email, int _account, int _phone, string _address){
             Vendor new_vendor(_name, _pass, _email, _account, _phone, _address);

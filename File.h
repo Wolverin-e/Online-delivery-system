@@ -18,11 +18,12 @@ int readFromFile(vector<T> &a, string file) {
     if(fin) {
         while(fin) {
             // cout<<"Inside File Reading"<<endl;
-            T _a; fin>>_a;
+            T _a; fin>>_a; 
             if(fin.eof()) {
                 _a.decnt();
                 break;
             }
+            _a.reinit();
             a.push_back(_a);
         }
         fin.close();

@@ -596,7 +596,8 @@ int main() {
     // Customer c1("nishant","jain","nish@","kotha",97823,0);
     // v2.add_new_item("shampoo", "cosmetics", "sexy", 50, 35);
     // Admin a("Boss","boobs","acid@");
-    home_page();
+    // home_page();
+    cout<<vendor_list[0].get_address()<<endl;
     // cout<<admin_list.size();
     // cout<<customer_list.size();
     // cout<<vendor_list.size();
