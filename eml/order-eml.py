@@ -73,7 +73,7 @@ email_content += """
   </body>
 </table>
 """.format(net_price)
-print(email_content)
+# print(email_content)
 
 MESSAGE = MIMEMultipart('alternative')
 MESSAGE['subject'] = "ORDER RECEIPT"
