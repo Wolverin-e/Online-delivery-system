@@ -89,6 +89,16 @@ void checkout() {
                 Order order(user_id,  items[i], quantity[i], slot_id, cod, empty_online);
             }
         }
+        //////////////////////
+        string email_content;
+        for(int i = 0; i<items.size(); i++){
+            Item itm = inventory.item_list[items[i]];
+            email_content += to_string(itm.get_item_id())+','+itm.get_name()+','+to_string(itm.get_price())+','+to_string(quantity[i])+'|';
+        }
+        email_content.pop_back();
+        email_content = '\''+email_content+'\'';
+        system("python ./eml/order-eml.py "+email_content);
+        //////////////////////
         current_user->get_cart().clear_cart();
         system("clear");
         return;
