@@ -587,6 +587,11 @@ void exit_flush() {
     writeToFile(inventory.item_list,"item");
     writeToFile(inventory.quantity,"quantity");
 }
+void init_Lists() {
+    for(auto it = inventory.item_list.begin(); it != inventory.item_list.end(); ++it) {
+        vendor_list[it->get_vendor_id()].get_items().push_back(it->get_item_id());
+    }
+}
 
 int main() {
     init_flush();
@@ -594,10 +599,11 @@ int main() {
     string s = "abcd";
     // Vendor v2("Manav","san01","man@",12345,958698,"randikhana");
     // Customer c1("nishant","jain","nish@","kotha",97823,0);
+    init_Lists();
     // v2.add_new_item("shampoo", "cosmetics", "sexy", 50, 35);
     // Admin a("Boss","boobs","acid@");
-    // home_page();
-    cout<<vendor_list[0].get_address()<<endl;
+    home_page();
+    // cout<<vendor_list[0].get_items().size()<<endl;
     // cout<<admin_list.size();
     // cout<<customer_list.size();
     // cout<<vendor_list.size();

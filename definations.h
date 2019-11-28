@@ -74,9 +74,7 @@ class Item{
             inventory.quantity[item_id] = _quantity;
             // inventory.quantity.push_back(_quantity);
         }
-        void reinit() {
-            // vendor_list[vendor_id].get_items().push_back(item_id);
-        }
+        void reinit(){}
         void decnt(){Item::total_items--;}
         string get_name() {return name;}
         void set_name(string _name) {name = _name;}
@@ -199,17 +197,26 @@ class Cart{
         bool is_empty(){return !items.size();}
         ////////////////////////
         friend ostream & operator << (ostream &out, const Cart &cart) {
+            out<<cart.items.size()<<" ";
             for(auto it = cart.items.begin(); it != cart.items.end(); ++it)
                 out<<*it<<" ";
+            out<<cart.quantity.size()<<" ";
             for(auto it = cart.quantity.begin(); it != cart.quantity.end(); ++it)
                 out<<*it<<" ";
             out<<cart.total_price<<endl;
         }
         friend istream & operator >> (istream &in, Cart &cart) {
-            for(auto it = cart.items.begin(); it != cart.items.end(); ++it)
-                in>>*it;
-            for(auto it = cart.quantity.begin(); it != cart.quantity.end(); ++it)
-                in>>*it;
+            int _item_size, _quantity_size, _temp;
+            in>>_item_size;
+            for(int _it = 0; _it < _item_size; _it++) {
+                in>>_temp;
+                cart.items.push_back(_temp);
+            }
+            in>>_quantity_size;
+            for(int _it = 0; _it < _quantity_size; _it++) {
+                in>>_temp;
+                cart.quantity.push_back(_temp);
+            }
             in>>cart.total_price;
         }
 };
@@ -351,6 +358,7 @@ class Vendor : public User{
         vector<int> orders; //order-reference-list
     public:
         friend Order;
+        friend Item;
         static int total_vendors;
         Vendor() {Vendor::total_vendors++;}
         Vendor(string _name, string _pass, string _email, int _account, int _phone, string _address):User(_name, _pass, _email){
@@ -580,3 +588,4 @@ class Admin : public User{
         friend istream & operator >> (istream &in, Admin &admin) {in>>static_cast<User &>(admin); return in;}
 };
 int Admin::total_admins = 0;
+// void Item::reinit(){vendor_list[vendor_id].items.push_back(item_id);}
