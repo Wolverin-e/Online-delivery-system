@@ -605,20 +605,8 @@ void init_Lists() {
 
 int main() {
     init_flush();
-    // cout<<inventory.quantity.size()<<" "<<endl;
-    string s = "abcd";
-    // Vendor v2("Manav","san01","man@",12345,958698,"randikhana");
-    // Customer c1("nishant","jain","nish@","kotha",97823,0);
     init_Lists();
-    // v2.add_new_item("shampoo", "cosmetics", "sexy", 50, 35);
-    // Admin a("Boss","boobs","acid@");
     home_page();
-    // cout<<vendor_list[0].get_items().size()<<endl;
-    // cout<<admin_list.size();
-    // cout<<customer_list.size();
-    // cout<<vendor_list.size();
-    // cout<<inventory.item_list.size()<<" "<<Item::total_items<<endl;
-    // cout<<inventory.quantity.size()<<" "<<endl;
     exit_flush();
     return 0;
 }
