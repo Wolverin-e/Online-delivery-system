@@ -1,9 +1,10 @@
-#include <bits/stdc++.h>
+// #include <bits/stdc++.h>
 #include<string>
 #include<vector>
 #include<iostream>
 #include "getpass.h"
 #include "File.h"
+#include<map>
 
 using namespace std;
 
@@ -144,7 +145,7 @@ class Cart{
         int add_to_cart(int _item_id, int _quantity){
             if(_item_id<inventory.item_list.size())
             {
-                if(inventory.quantity[_item_id]>_quantity){
+                if(inventory.quantity[_item_id]>=_quantity){
                     auto it = find(items.begin(), items.end(), _item_id);
                     if(it == items.end())
                     {
@@ -152,7 +153,7 @@ class Cart{
                         quantity.push_back(_quantity);
                     } else {
                         auto q = (it-items.begin()+quantity.begin());
-                        if(*q + _quantity < inventory.quantity[_item_id]){
+                        if(*q + _quantity <= inventory.quantity[_item_id]){
                             *q = *q+_quantity;
                         } else {
                             return 1;
